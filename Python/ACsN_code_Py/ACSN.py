@@ -18,7 +18,7 @@ import cupy as cp
 #     # "Mode": xxx, "SaveFileName": xxx, 
 #     # "Video": xxx, "Window": xxx, "Alpha": xxx, "QualityMap": xxx}
 
-def ACSN(I,NA,Lambda,PixelSize,varargin):
+def ACSN(I,NA,Lambda,PixelSize,varargin, verbose=True):
 
     start = time.perf_counter()
     # Assumes I is a 3D variable
@@ -31,23 +31,23 @@ def ACSN(I,NA,Lambda,PixelSize,varargin):
     ## main theme
 
     if (Mode == "Fast"):
-        img, Qmap, Qscore = ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight)
+        img, Qmap, Qscore = ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, verbose=verbose)
     elif (Video == "yes"):
         img, Qmap, Qscore = ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight)
     else:
-        img, Qmap, Qscore = ACSN_processing(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, weight)
+        img, Qmap, Qscore = ACSN_processing(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, weight, verbose=verbose)
 
     ## finale
-
-    end = time.perf_counter()
-    print("Elapsed Time: " + str(end - start) + " seconds" +"\n")
-    print("Average Quality: ")
-    Av_qI = np.mean(Qscore.flatten())
-    if (Av_qI >= 0.6):
-        print("High: " + str(Av_qI) + "\n")
-    elif (abs(Av_qI - 0.5) < 0.1):
-        print("Medium: " + str(Av_qI) + "\n")
-    else:
-        print("Low: " + str(Av_qI) + "\n")
+    if verbose:
+        end = time.perf_counter()
+        print("Elapsed Time: " + str(end - start) + " seconds" +"\n")
+        print("Average Quality: ")
+        Av_qI = np.mean(Qscore.flatten())
+        if (Av_qI >= 0.6):
+            print("High: " + str(Av_qI) + "\n")
+        elif (abs(Av_qI - 0.5) < 0.1):
+            print("Medium: " + str(Av_qI) + "\n")
+        else:
+            print("Low: " + str(Av_qI) + "\n")
     
     return Qscore, sigma, img, SaveFileName

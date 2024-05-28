@@ -7,8 +7,7 @@ from Gaussian_image_filtering import Gaussian_image_filtering
 from scipy.optimize import curve_fit
 import cupy as cp
 
-def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w):
-    
+def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, verbose=True):
     R = 2 * NA / Lambda * PixelSize * I.shape[0]
     adj = 1.1
     R2 = (0.5 * I.shape[0] * adj)
@@ -21,7 +20,9 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w):
 
     #Remove hotspots
     if (Hotspot == 1):
-        
+        if verbose:
+            print("Removing hotspot...")
+
         # Fourier Filter
         R1 = min(R, len(I1)/2)
         
@@ -38,10 +39,11 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w):
 
         I1[I1 <= 0] = 1e-6
 
-
     #Fourier Filter 2
     R1 = min(R, len(I1)/2)
 
+    if verbose:
+        print("Running Fourier Filter...")
     _, high = Gaussian_image_filtering(I1, "Step", R1)
 
     #Evaluation of Sigma
@@ -74,6 +76,8 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w):
         sigma = sigma/(M1 - M2) * 255
 
     #SPARSE FILTERING FUNCTION
+    if verbose:
+        print("Sparing filtering BM3D...")
     img = bm3d(I2, sigma) * (M1 - M2) + M2 # try exchanging the bm3d with the one in C; test the bm3d C version speed in isolation (<3.855 seconds)
 
     return img, sigma, I1
