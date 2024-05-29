@@ -17,7 +17,7 @@ from multiprocessing import Pool
 
 
 def ACSN_core_helper(args):
-    img, sigma_temp, Qscore = ACSN_core(
+    img, sigma_temp, Qscore, high = ACSN_core(
         I = args["image"],
         NA = args["NA"],
         Lambda = args["Lambda"],
@@ -27,16 +27,19 @@ def ACSN_core_helper(args):
         Hotspot = args["Hotspot"],
         w = args["weight"],
         verbose = args["verbose"],
+        BM3DBackend = args["BM3DBackend"],
+        FourierAdj = args["FourierAdj"]
     )        
 
-    return {"image": img, "sigma": sigma_temp, "QScore": Qscore}
+    return {"image": img, "sigma": sigma_temp, "QScore": Qscore, "high": high}
 
-def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, verbose=True):
+def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, verbose=True):
     if verbose:
         print("ACSN parallel processing:")
 
     sig = []
     I1 = np.zeros(I.shape)
+    high = np.zeros(I.shape)
 
     # prepare data for parallel processing
     input_args = [{
@@ -48,7 +51,9 @@ def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM
         "Offset": Offset,
         "Hotspot": Hotspot,
         "weight": weight ,
-        "verbose": verbose
+        "verbose": verbose,
+        "BM3DBackend": BM3DBackend,
+        "FourierAdj": FourierAdj
     } for i in range(I.shape[2])]
 
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
@@ -58,6 +63,7 @@ def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM
         img[:,:,i] = res["image"]
         sig.append(res["sigma"])
         I1[:,:,i] = res["QScore"]
+        high[:,:,i] = res["high"]
 
     Qscore = np.zeros((img.shape[2], 1))
 
@@ -69,7 +75,6 @@ def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM
                 Qmap[:, :, i] = Quality_Map(img[:, :, i], I1[:, :, i])
     
         if (Qscore.mean(axis = 0) < 0.55) or (Video[0] == 'y'):
-
             print('Please wait... Additional 3D denoising required')
 
             # psd = sigma.mean(axis=0) * (0.6 - Qscore.mean(axis=0))

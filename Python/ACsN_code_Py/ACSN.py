@@ -12,13 +12,16 @@ from ACSN_processing_video import ACSN_processing_video
 from numba import jit
 import cupy as cp
 
-# # varargin is a list with different datatypes
-# # for python it will be a dictionary
-# # varargin = {"Gain": xxx, "Offset": xxx, "Hotspot": xxx, "Level": xxx, 
-#     # "Mode": xxx, "SaveFileName": xxx, 
-#     # "Video": xxx, "Window": xxx, "Alpha": xxx, "QualityMap": xxx}
-
 def ACSN(I,NA,Lambda,PixelSize,varargin, verbose=True):
+    '''
+    varargin is a list with different datatypes
+    for python it will be a dictionary
+    varargin = {"Gain": xxx, "Offset": xxx, "Hotspot": xxx, "Level": xxx, 
+        "Mode": xxx, "SaveFileName": xxx, 
+        "Video": xxx, "Window": xxx, "Alpha": xxx, "QualityMap": xxx,
+        "BM3DBackend": "NATIVE"/"GPU", "FourierAdj: 1.0 
+    }
+    '''
 
     start = time.perf_counter()
     # Assumes I is a 3D variable
@@ -26,16 +29,15 @@ def ACSN(I,NA,Lambda,PixelSize,varargin, verbose=True):
     sigma = np.zeros((I.shape[2], 1))
     img = np.zeros(I.shape)
     Qmap = np.zeros(I.shape[0])
-    I, Gain, Offset, Hotspot, Level, Mode, SaveFileName, Video, Window, alpha, QM, weight = ACSN_initialization(I, varargin=varargin)
+    I, Gain, Offset, Hotspot, Level, Mode, SaveFileName, Video, Window, alpha, QM, weight, BM3DBackend, FourierAdj = ACSN_initialization(I, varargin=varargin)
 
     ## main theme
-
     if (Mode == "Fast"):
-        img, Qmap, Qscore = ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, verbose=verbose)
+        img, Qmap, Qscore = ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, verbose=verbose)
     elif (Video == "yes"):
-        img, Qmap, Qscore = ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight)
+        img, Qmap, Qscore = ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj)
     else:
-        img, Qmap, Qscore = ACSN_processing(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, weight, verbose=verbose)
+        img, Qmap, Qscore = ACSN_processing(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, weight, BM3DBackend, FourierAdj, verbose=verbose)
 
     ## finale
     if verbose:

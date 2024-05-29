@@ -1,18 +1,11 @@
-import numpy as np
-from skimage import io
-import math
-import scipy
-from bm3d import bm3d
-from Gaussian_image_filtering import Gaussian_image_filtering
-from scipy.optimize import curve_fit
-import cupy as cp
-
-def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, verbose=True):
-    R = 2 * NA / Lambda * PixelSize * I.shape[0]
+def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, LLSM, SkewAngle, Thickness, BM3DBackend, FourierAdj=1.0, verbose=True):
+    # OTF radius
+    R = 2 * NA / Lambda * PixelSize * np.max(I.shape[0:2])
     adj = 1.1
-    R2 = (0.5 * I.shape[0] * adj)
-    # multiplicative factor to adjust the sigma of the noie
+    R2 = (0.5 * np.max(I.shape[0:2]) * adj)
+    # multiplicative factor to adjust the sigma of the noise
     ratio = math.sqrt(R2/abs(R-R2))
+
     # rescaling
     I1 = (I - Offset)/Gain
     I1[I1 <= 0] = 1e-6
@@ -24,9 +17,9 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, verbose=True):
             print("Removing hotspot...")
 
         # Fourier Filter
-        R1 = min(R, len(I1)/2)
+        R1 = min(R, min(I1.shape)/2)
         
-        _, high = Gaussian_image_filtering(I1, "Step", R1)
+        _, high = Gaussian_image_filtering(I1, "Step", R1*FourierAdj)
         
         # Median Filter
         I1b = np.lib.pad(I1, (2,2), 'edge') #I1b is still a cupy array after this line
@@ -40,11 +33,13 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, verbose=True):
         I1[I1 <= 0] = 1e-6
 
     #Fourier Filter 2
-    R1 = min(R, len(I1)/2)
+    R1 = min(R, min(I1.shape)/2)
 
     if verbose:
         print("Running Fourier Filter...")
-    _, high = Gaussian_image_filtering(I1, "Step", R1)
+    _, high = Gaussian_image_filtering(I1, "Step", R1*FourierAdj)
+
+    # return I, high, I1
 
     #Evaluation of Sigma
     Values, t = np.histogram(high.flatten())
@@ -65,6 +60,10 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, verbose=True):
 
     sigma = w * ratio * a
 
+    if verbose:
+        print("Estimated Sigma: {:.2f}".format(a))
+        print("Sigma: {:.2f}".format(sigma))
+
     # normalization
     M1 = np.amax(I1)
     M2 = np.amin(I1)
@@ -77,7 +76,11 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, verbose=True):
 
     #SPARSE FILTERING FUNCTION
     if verbose:
-        print("Sparing filtering BM3D...")
-    img = bm3d(I2, sigma) * (M1 - M2) + M2 # try exchanging the bm3d with the one in C; test the bm3d C version speed in isolation (<3.855 seconds)
+        print("Sparse filtering BM3D...")
+    if BM3DBackend == "GPU":
+        print("BM3D gpu backend in development, abort")
+        exit()
+    else:
+        img = bm3d(I2, sigma) * (M1 - M2) + M2 # try exchanging the bm3d with the one in C; test the bm3d C version speed in isolation (<3.855 seconds)
 
-    return img, sigma, I1
+    return img, sigma, I1, high
