@@ -13,7 +13,7 @@ import mvsfunc as mvf
 import functools
 from matplotlib import pyplot as plt
 
-def ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, verbose=True):
+def ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, HT, Step, verbose=True):
     if verbose:
         print("Doing video processing: ")
 
@@ -22,7 +22,7 @@ def ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Q
     sig = []
 
     for frame in range(0, I.shape[2]):
-        img[:, :, frame], temp_sigma, I1[:, :, frame], high[:,:,frame] = ACSN_core(I[:, :, frame], NA, Lambda, PixelSize, Gain, Offset, Hotspot, weight,BM3DBackend, FourierAdj, verbose=verbose)
+        img[:, :, frame], temp_sigma, I1[:, :, frame], high[:,:,frame] = ACSN_core(I[:, :, frame], NA, Lambda, PixelSize, Gain, Offset, Hotspot, weight,BM3DBackend, FourierAdj, HT, Step, verbose=verbose)
         sig.append(temp_sigma)
 
     Qscore = np.zeros((img.shape[2], 1))

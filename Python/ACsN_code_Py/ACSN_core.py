@@ -6,8 +6,9 @@ from bm3d import bm3d
 from Gaussian_image_filtering import Gaussian_image_filtering
 from scipy.optimize import curve_fit
 import cupy as cp
+import pyGpuBM3D.pyGpuBM3D as gbm3d
 
-def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, BM3DBackend, FourierAdj=1.0, verbose=True):
+def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, BM3DBackend, FourierAdj=1.0, HT=2.7, Step=2, verbose=True):
     # OTF radius
     R = 2 * NA / Lambda * PixelSize * np.max(I.shape[0:2])
     adj = 1.1
@@ -87,8 +88,10 @@ def ACSN_core(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, w, BM3DBackend, F
     if verbose:
         print("Sparse filtering BM3D...")
     if BM3DBackend == "GPU":
-        print("BM3D gpu backend in development, abort")
-        exit()
+        print(np.percentile(I2,99.8))
+        I2_8bit = np.ascontiguousarray((I2*255/np.percentile(I2,99.99)).astype(np.uint8))  
+
+        img = gbm3d.denoise(I2_8bit, sigma, sigma, HT, Step, verbose).astype(np.float32)/255.0 * (M1 - M2) + M2
     else:
         img = bm3d(I2, sigma) * (M1 - M2) + M2 # try exchanging the bm3d with the one in C; test the bm3d C version speed in isolation (<3.855 seconds)
 

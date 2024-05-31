@@ -59,5 +59,7 @@ CPU version of linear regression fitting is available in [./ACsN_Calibration_Py/
 
 For GPU accelerated fitting you will need the extra dependency [Gpufit](https://github.com/gpufit/Gpufit). Check the calibration process in [./ACsN_Calibration_Py/Camera_Calibration_GPU.py](./ACsN_Calibration_Py/Camera_Calibration_GPU.py)
 
+### GPU BM3D
+
 ## Creators ##
 Suraj Rajendran (Python Version) and Biagio Mandracchia

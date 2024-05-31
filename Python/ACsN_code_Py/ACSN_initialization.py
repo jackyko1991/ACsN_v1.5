@@ -6,7 +6,23 @@ from skimage import io
 
 def ACSN_initialization(I, varargin=None):
 
-    default = [[1], [90], 1, 0, "Slow", "ACSN_" + str(datetime.date(datetime.now())) + ".tif", "auto", 64, 0.25, "no", 0.15, "NATIVE", 1.0]
+    default = [
+        [1], # Gain
+        [90], # Offset
+        1, # Hotspot
+        0, # Level
+        "Slow", # Mode
+        "ACSN_" + str(datetime.date(datetime.now())) + ".tif", # SaveFileName 
+        "auto", # Video
+        64, # Window
+        0.25, # alpha
+        "no", # QM
+        0.15, # weight
+        "NATIVE", # BM3DBackend
+        1.0, # FourierAdj
+        2.7, # HT
+        2, # Step
+        ]
 
     Gain = np.array(default[0])
     Offset = np.array(default[1])
@@ -21,6 +37,8 @@ def ACSN_initialization(I, varargin=None):
     weight = default[10]
     BM3DBackend = default[11]
     FourierAdj = default[12]
+    HT = default[13]
+    Step = default[14]
 
     if varargin != None:
         # Other stuff for initialization
@@ -51,6 +69,10 @@ def ACSN_initialization(I, varargin=None):
             weight = varargin["Weight"]
         if "FourierAdj" in varargin:
             FourierAdj = varargin["FourierAdj"]
+        if "HT" in varargin:
+            HT = varargin["HT"]
+        if "Step" in varargin:
+            Step = varargin["Step"]
 
     if (max(Offset.shape) == 1):
         Offset = Offset * np.ones(I[:, :, 0].shape)

@@ -29,15 +29,15 @@ def ACSN(I,NA,Lambda,PixelSize,varargin, verbose=True):
     sigma = np.zeros((I.shape[2], 1))
     img = np.zeros(I.shape)
     Qmap = np.zeros(I.shape[0])
-    I, Gain, Offset, Hotspot, Level, Mode, SaveFileName, Video, Window, alpha, QM, weight, BM3DBackend, FourierAdj = ACSN_initialization(I, varargin=varargin)
+    I, Gain, Offset, Hotspot, Level, Mode, SaveFileName, Video, Window, alpha, QM, weight, BM3DBackend, FourierAdj, HT, Step = ACSN_initialization(I, varargin=varargin)
 
     ## main theme
     if (Mode == "Fast"):
-        img, Qmap, Qscore = ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, verbose=verbose)
+        img, Qmap, Qscore = ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, HT, Step, verbose=verbose)
     elif (Video == "yes"):
-        img, Qmap, Qscore = ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj)
+        img, Qmap, Qscore = ACSN_processing_video(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, HT, Step, FourierAdj)
     else:
-        img, Qmap, Qscore = ACSN_processing(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, weight, BM3DBackend, FourierAdj, verbose=verbose)
+        img, Qmap, Qscore = ACSN_processing(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, weight, BM3DBackend, FourierAdj, HT, Step, verbose=verbose)
 
     ## finale
     if verbose:

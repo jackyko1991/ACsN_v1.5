@@ -28,12 +28,14 @@ def ACSN_core_helper(args):
         w = args["weight"],
         verbose = args["verbose"],
         BM3DBackend = args["BM3DBackend"],
-        FourierAdj = args["FourierAdj"]
+        FourierAdj = args["FourierAdj"],
+        HT = args["HT"],
+        Step = args["Step"]
     )        
 
     return {"image": img, "sigma": sigma_temp, "QScore": Qscore, "high": high}
 
-def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, verbose=True):
+def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM, Qmap, Qscore, sigma, img, Video, weight, BM3DBackend, FourierAdj, HT, Step, verbose=True):
     if verbose:
         print("ACSN parallel processing:")
 
@@ -53,7 +55,9 @@ def ACSN_processing_parallel(I, NA, Lambda, PixelSize, Gain, Offset, Hotspot, QM
         "weight": weight ,
         "verbose": verbose,
         "BM3DBackend": BM3DBackend,
-        "FourierAdj": FourierAdj
+        "FourierAdj": FourierAdj,
+        "HT": HT,
+        "Step": Step
     } for i in range(I.shape[2])]
 
     with multiprocessing.Pool(multiprocessing.cpu_count()) as pool:
